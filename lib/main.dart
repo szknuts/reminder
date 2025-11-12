@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 void main() {
   runApp(const MyApp());
@@ -30,9 +31,27 @@ class ReminderHomePage extends StatefulWidget {
 }
 
 class _ReminderHomePageState extends State<ReminderHomePage> {
-  List<String> items = ['dummy Item 1', 'dummy Item 2', 'dummy Item 3'];
+  List<String> items = [];
 
   final TextEditingController _textController = TextEditingController();
+
+  @override
+  void initState() {
+    super.initState();
+    _loadTasks();
+  }
+
+  Future<void> _loadTasks() async {
+    final prefs = await SharedPreferences.getInstance();
+    setState(() {
+      items = prefs.getStringList('tasks_key') ?? [];
+    });
+  }
+
+  Future<void> _saveTasks() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setStringList('tasks_key', items);
+  }
 
   @override
   void dispose() {
@@ -85,6 +104,7 @@ class _ReminderHomePageState extends State<ReminderHomePage> {
                       if (_textController.text.isNotEmpty) {
                         setState(() {
                           items.add(_textController.text);
+                          _saveTasks();
                           _textController.clear();
                         });
                         Navigator.of(context).pop();
