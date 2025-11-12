@@ -30,13 +30,15 @@ class ReminderHomePage extends StatefulWidget {
 }
 
 class _ReminderHomePageState extends State<ReminderHomePage> {
-  List<String> items = [
-    'dummyItem 1',
-    'dummyItem 2',
-    'dummyItem 3',
-    'dummyItem 4',
-    'dummyItem 5',
-  ];
+  List<String> items = ['dummy Item 1', 'dummy Item 2', 'dummy Item 3'];
+
+  final TextEditingController _textController = TextEditingController();
+
+  @override
+  void dispose() {
+    _textController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -55,9 +57,45 @@ class _ReminderHomePageState extends State<ReminderHomePage> {
 
       floatingActionButton: FloatingActionButton(
         onPressed: () {
-          //
+          showDialog(
+            context: context,
+            builder: (BuildContext context) {
+              return AlertDialog(
+                title: const Text("add new reminder"),
+
+                content: TextField(
+                  controller: _textController,
+                  decoration: const InputDecoration(
+                    hintText: "Enter reminder here",
+                  ),
+                  autofocus: true,
+                ),
+
+                actions: <Widget>[
+                  TextButton(
+                    child: const Text("キャンセル"),
+                    onPressed: () {
+                      _textController.clear();
+                      Navigator.of(context).pop();
+                    },
+                  ),
+                  TextButton(
+                    child: const Text("追加"),
+                    onPressed: () {
+                      if (_textController.text.isNotEmpty) {
+                        setState(() {
+                          items.add(_textController.text);
+                          _textController.clear();
+                        });
+                        Navigator.of(context).pop();
+                      }
+                    },
+                  ),
+                ],
+              );
+            },
+          );
         },
-        backgroundColor: Colors.red,
         tooltip: "Add Reminder",
         child: const Icon(Icons.add),
       ),
