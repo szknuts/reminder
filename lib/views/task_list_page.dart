@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import "package:reminder/repositories/task_repository.dart";
+import 'package:reminder/models/task_model.dart';
 
 class TaskListPage extends StatefulWidget {
   const TaskListPage({super.key});
@@ -11,7 +12,7 @@ class _TaskListPageState extends State<TaskListPage> {
   // 5. (新設) Repository のインスタンス（実体）を作成
   final TaskRepository _repository = TaskRepository();
 
-  List<String> items = [];
+  List<Task> items = [];
   final TextEditingController _textController = TextEditingController();
 
   @override
@@ -31,6 +32,13 @@ class _TaskListPageState extends State<TaskListPage> {
     await _repository.saveTasks(items);
   }
 
+  void _toggleTask(int index) {
+    setState(() {
+      items[index].isCompleted = !items[index].isCompleted;
+      _saveTasks();
+    });
+  }
+
   @override
   void dispose() {
     _textController.dispose();
@@ -39,18 +47,33 @@ class _TaskListPageState extends State<TaskListPage> {
 
   @override
   Widget build(BuildContext context) {
-    // ( build の中身は、以前のコードから一切変更なしでOK )
     return Scaffold(
-      appBar: AppBar(title: const Text('リマインダー')),
+      appBar: AppBar(title: const Text('ReminderTodo')),
       body: ListView.builder(
         itemCount: items.length,
         itemBuilder: (context, index) {
+          final task = items[index];
+
           return ListTile(
-            leading: const Icon(Icons.circle_outlined),
-            title: Text(items[index]),
+            leading: Icon(
+              task.isCompleted ? Icons.check_circle : Icons.circle_outlined,
+            ),
+            title: Text(
+              task.title,
+              style: TextStyle(
+                decoration: task.isCompleted
+                    ? TextDecoration.lineThrough
+                    : null,
+                color: task.isCompleted ? Colors.grey : null,
+              ),
+            ),
+            onTap: () {
+              _toggleTask(index);
+            },
           );
         },
       ),
+
       floatingActionButton: FloatingActionButton(
         onPressed: () {
           showDialog(
@@ -78,8 +101,8 @@ class _TaskListPageState extends State<TaskListPage> {
                     onPressed: () {
                       if (_textController.text.isNotEmpty) {
                         setState(() {
-                          items.add(_textController.text);
-                          _saveTasks(); // 変更なし (上の _saveTasks を呼ぶ)
+                          items.add(Task(title: _textController.text));
+                          _saveTasks();
                           _textController.clear();
                         });
                         Navigator.of(context).pop();
