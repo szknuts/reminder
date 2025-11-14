@@ -29,7 +29,7 @@ class MyApp extends StatelessWidget {
       viewModelでnotifyListeners()を呼び出すとウィジェットが再構築できる
       */
       home: ChangeNotifierProvider(
-        create: (_) => TaskListViewModel(),
+        create: (_) => TaskListViewModel()..loadTasks(),
         child: const TaskListPage(),
       ),
     );

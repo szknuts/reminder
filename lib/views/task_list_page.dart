@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import "package:reminder/repositories/task_repository.dart";
-import 'package:reminder/models/task_model.dart';
+import 'package:provider/provider.dart';
+import 'package:reminder/viewmodels/task_list_viewmodel.dart';
 
 class TaskListPage extends StatefulWidget {
   const TaskListPage({super.key});
@@ -10,34 +10,8 @@ class TaskListPage extends StatefulWidget {
 }
 
 class _TaskListPageState extends State<TaskListPage> {
-  final TaskRepository _repository = TaskRepository();
-
-  List<Task> items = [];
+  // final TaskRepository _repository = TaskRepository();
   final TextEditingController _textController = TextEditingController();
-
-  @override
-  void initState() {
-    super.initState();
-    _loadTasks();
-  }
-
-  Future<void> _loadTasks() async {
-    final loadedTasks = await _repository.loadTasks();
-    setState(() {
-      items = loadedTasks;
-    });
-  }
-
-  Future<void> _saveTasks() async {
-    await _repository.saveTasks(items);
-  }
-
-  void _toggleTask(int index) {
-    setState(() {
-      items[index].isCompleted = !items[index].isCompleted;
-      _saveTasks();
-    });
-  }
 
   @override
   void dispose() {
@@ -45,75 +19,77 @@ class _TaskListPageState extends State<TaskListPage> {
     super.dispose();
   }
 
+  void _showAddDialog() {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text("新しいタスク"),
+          content: TextField(
+            controller: _textController,
+            decoration: const InputDecoration(hintText: "タスクを入力"),
+            autofocus: true,
+          ),
+          actions: <Widget>[
+            TextButton(
+              child: const Text("キャンセル"),
+              onPressed: () {
+                _textController.clear();
+                Navigator.of(context).pop();
+              },
+            ),
+            TextButton(
+              child: const Text("追加"),
+              onPressed: () {
+                final text = _textController.text.trim();
+                if (text.isNotEmpty) {
+                  context.read<TaskListViewModel>().addTask(text);
+                  _textController.clear();
+                  Navigator.of(context).pop();
+                }
+              },
+            ),
+          ],
+        );
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: const Text('ReminderTodo')),
-      body: ListView.builder(
-        itemCount: items.length,
-        itemBuilder: (context, index) {
-          final task = items[index];
 
-          return ListTile(
-            leading: Icon(
-              task.isCompleted ? Icons.check_circle : Icons.circle_outlined,
-            ),
-            title: Text(
-              task.title,
-              style: TextStyle(
-                decoration: task.isCompleted
-                    ? TextDecoration.lineThrough
-                    : null,
-                color: task.isCompleted ? Colors.grey : null,
-              ),
-            ),
-            onTap: () {
-              _toggleTask(index);
+      body: Consumer<TaskListViewModel>(
+        builder: (context, viewModel, child) {
+          return ListView.builder(
+            itemCount: viewModel.tasks.length,
+            itemBuilder: (context, index) {
+              final task = viewModel.tasks[index];
+              return ListTile(
+                leading: Icon(
+                  task.isCompleted ? Icons.check_circle : Icons.circle_outlined,
+                ),
+                title: Text(
+                  task.title,
+                  style: TextStyle(
+                    decoration: task.isCompleted
+                        ? TextDecoration.lineThrough
+                        : null,
+                    color: task.isCompleted ? Colors.grey : null,
+                  ),
+                ),
+                onTap: () {
+                  viewModel.toggleTaskCompletion(index);
+                },
+              );
             },
           );
         },
       ),
 
       floatingActionButton: FloatingActionButton(
-        onPressed: () {
-          showDialog(
-            context: context,
-            builder: (BuildContext context) {
-              return AlertDialog(
-                title: const Text("add new reminder"),
-                content: TextField(
-                  controller: _textController,
-                  decoration: const InputDecoration(
-                    hintText: "Enter reminder here",
-                  ),
-                  autofocus: true,
-                ),
-                actions: <Widget>[
-                  TextButton(
-                    child: const Text("キャンセル"),
-                    onPressed: () {
-                      _textController.clear();
-                      Navigator.of(context).pop();
-                    },
-                  ),
-                  TextButton(
-                    child: const Text("追加"),
-                    onPressed: () {
-                      if (_textController.text.isNotEmpty) {
-                        setState(() {
-                          items.add(Task(title: _textController.text));
-                          _saveTasks();
-                          _textController.clear();
-                        });
-                        Navigator.of(context).pop();
-                      }
-                    },
-                  ),
-                ],
-              );
-            },
-          );
-        },
+        onPressed: _showAddDialog,
         tooltip: "Add Reminder",
         child: const Icon(Icons.add),
       ),

@@ -12,6 +12,7 @@ class TaskListViewModel extends ChangeNotifier {
   Future<void> loadTasks() async {
     try {
       tasks = await _taskRepository.loadTasks();
+      notifyListeners();
     } catch (e) {
       _logger.warning('タスク読み込みエラー: $e');
     }
@@ -19,9 +20,10 @@ class TaskListViewModel extends ChangeNotifier {
 
   /// タスク追加
   Future<void> addTask(String title) async {
-    if (title.trim().isEmpty) return;
+    final t = title.trim();
+    if (t.isEmpty) return;
     try {
-      final newTask = Task(title: title);
+      final newTask = Task(title: t);
       tasks.add(newTask);
       await _taskRepository.saveTasks(tasks);
       notifyListeners();
@@ -32,15 +34,25 @@ class TaskListViewModel extends ChangeNotifier {
 
   /// タスク削除
   Future<void> removeTask(int index) async {
-    tasks.removeAt(index);
-    await _taskRepository.saveTasks(tasks);
-    notifyListeners();
+    if (index < 0 || index >= tasks.length) return;
+    try {
+      tasks.removeAt(index);
+      await _taskRepository.saveTasks(tasks);
+      notifyListeners();
+    } catch (e) {
+      _logger.warning('タスク削除エラー: $e');
+    }
   }
 
   /// タスク完了状態切り替え
   Future<void> toggleTaskCompletion(int index) async {
-    tasks[index].isCompleted = !tasks[index].isCompleted;
-    await _taskRepository.saveTasks(tasks);
-    notifyListeners();
+    if (index < 0 || index >= tasks.length) return;
+    try {
+      tasks[index].isCompleted = !tasks[index].isCompleted;
+      await _taskRepository.saveTasks(tasks);
+      notifyListeners();
+    } catch (e) {
+      _logger.warning('タスク完了切り替えエラー: $e');
+    }
   }
 }
