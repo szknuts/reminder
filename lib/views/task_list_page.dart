@@ -4,12 +4,12 @@ import 'package:reminder/models/task_model.dart';
 
 class TaskListPage extends StatefulWidget {
   const TaskListPage({super.key});
+
   @override
   State<TaskListPage> createState() => _TaskListPageState();
 }
 
 class _TaskListPageState extends State<TaskListPage> {
-  // 5. (新設) Repository のインスタンス（実体）を作成
   final TaskRepository _repository = TaskRepository();
 
   List<Task> items = [];

@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import 'package:reminder/viewmodels/task_list_viewmodel.dart';
 import "package:reminder/views/task_list_page.dart";
 
 void main() {
@@ -18,7 +20,18 @@ class MyApp extends StatelessWidget {
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.red),
       ),
 
-      home: const TaskListPage(),
+      /* めも
+      ChangeNotifierProviderはviewmodelの形を提供する
+      createでインスタンス作成
+      childと子孫はcreateのインスタンスにアクセスできる
+      context.read<TaskListViewModel>().tasks ← 値を読む
+      context.watch<TaskListViewModel>().tasks ← 値を監視(変更時に再構築)
+      viewModelでnotifyListeners()を呼び出すとウィジェットが再構築できる
+      */
+      home: ChangeNotifierProvider(
+        create: (_) => TaskListViewModel(),
+        child: const TaskListPage(),
+      ),
     );
   }
 }

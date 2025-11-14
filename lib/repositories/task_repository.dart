@@ -7,7 +7,7 @@ class TaskRepository {
   /// タスク保存用のキー
   static const String _tasksKey = 'tasks_key';
 
-  /// タスクを読み込む
+  /// タスクをストレージから読み込む
   Future<List<Task>> loadTasks() async {
     final prefs = await SharedPreferences.getInstance();
     final List<String> taskJsonList = prefs.getStringList(_tasksKey) ?? [];
@@ -18,7 +18,7 @@ class TaskRepository {
     }).toList();
   }
 
-  /// タスクを保存する
+  /// タスクをストレージに保存する
   Future<void> saveTasks(List<Task> items) async {
     final prefs = await SharedPreferences.getInstance();
     final List<String> taskJsonList = items.map((task) {
